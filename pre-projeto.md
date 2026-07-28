@@ -37,10 +37,13 @@ Questões secundárias:
 
 ## 3. Hipóteses
 
-- **H1:** Os componentes de otimização combinatória do orquestrador (alocação de tarefas a agentes, formação de coalizões, escalonamento) são os candidatos mais promissores à aceleração quântica, por possuírem formulação natural como QUBO/Ising, compatível com QAOA e quantum annealing.
-- **H2:** Componentes dependentes de grandes volumes de dados clássicos (recuperação semântica, memória vetorial) tendem a **não** apresentar vantagem no horizonte NISQ, pois o custo de codificação dos dados (state preparation / qRAM) domina o ganho algorítmico.
-- **H3:** Existe um limiar de tamanho de instância (número de agentes × tarefas × restrições) abaixo do qual heurísticas clássicas dominam e acima do qual métodos híbridos quântico-clássicos passam a ser competitivos — e esse limiar é caracterizável empiricamente.
-- **H4:** Uma arquitetura híbrida seletiva (quântico apenas onde H1–H3 indicam vantagem) apresenta melhor razão custo/desempenho do que abordagens "tudo clássico" ou "tudo quântico".
+As hipóteses permanecem deliberadamente **abertas** nesta fase: a pesquisa é agnóstica quanto a *onde* — e *se* — a computação quântica traz benefício a arquiteturas multiagente. A revisão sistemática (Etapa 1) as refinará em hipóteses específicas por componente, incluindo a possibilidade de resultados negativos em todas as camadas.
+
+- **H1:** Existem componentes de arquiteturas multiagentes que apresentam vantagens mensuráveis quando implementados com algoritmos quânticos.
+- **H2:** As vantagens observadas, quando existirem, dependem do tamanho do problema e da estrutura dos dados (incluindo o custo de codificação de dados clássicos).
+- **H3:** Nem todos os componentes se beneficiam igualmente de abordagens quânticas — o mapa de ganhos é heterogêneo entre camadas.
+- **H4:** É possível construir um orquestrador híbrido capaz de selecionar dinamicamente entre implementações clássicas e quânticas de um mesmo componente.
+- **H5:** Arquiteturas híbridas apresentam melhor relação custo-benefício do que arquiteturas exclusivamente clássicas ou exclusivamente quânticas.
 
 ## 4. Objetivos
 
@@ -50,7 +53,7 @@ Propor e validar experimentalmente um **framework de decisão** que mapeie compo
 
 ### 4.2 Objetivos específicos
 
-1. **Taxonomia:** decompor arquiteturas multiagente de referência (orquestrador-trabalhadores, blackboard, mercado/leilão, hierárquica) em componentes computacionais formalizáveis, identificando classe de complexidade e estrutura de cada um.
+1. **Taxonomia:** decompor arquiteturas multiagente de referência (orquestrador-trabalhadores, blackboard, mercado/leilão, hierárquica) em componentes computacionais formalizáveis, organizados em camadas candidatas — planejamento, recuperação de informação, memória, coordenação, aprendizado e raciocínio — identificando classe de complexidade e estrutura de cada um, **sem privilegiar a priori nenhuma camada**.
 2. **Mapeamento:** associar cada componente aos algoritmos quânticos candidatos (Grover e variantes de amplitude amplification, QAOA, annealing, caminhadas quânticas, VQE, amostragem quântica), com análise teórica do ganho esperado e dos custos de codificação.
 3. **Baselines fortes:** implementar as melhores soluções clássicas conhecidas para cada componente (solvers exatos, meta-heurísticas, algoritmos aproximados), evitando comparações contra baselines fracos — vício metodológico recorrente na literatura de vantagem quântica.
 4. **Bancada experimental:** construir uma bancada de benchmarks reprodutível com instâncias sintéticas e derivadas de cargas reais de sistemas multiagente (traces de orquestração), executando as versões quânticas em simulador (Qiskit/PennyLane) e, quando viável, em hardware real (IBM Quantum, D-Wave via nuvem).
@@ -76,7 +79,7 @@ O trabalho segue o ciclo **formalizar → mapear → medir → sintetizar**, em 
 
 **Etapa 1 — Revisão sistemática e taxonomia (semestres 1–2).** Revisão sistemática (protocolo PRISMA adaptado) da literatura nas duas áreas e da interseção. Produto: taxonomia de componentes de arquiteturas multiagente com formalização matemática de cada problema interno (ex.: alocação de tarefas como problema de atribuição generalizada; formação de coalizões como particionamento de conjuntos; roteamento de mensagens como problema em grafos).
 
-**Etapa 2 — Mapeamento teórico e seleção de pares (semestres 2–3).** Para cada componente formalizado, análise de compatibilidade com algoritmos quânticos: existência de formulação QUBO/oráculo, custo de codificação de dados, profundidade de circuito estimada, sensibilidade a ruído. Seleção de 3–5 pares (componente, algoritmo) para investigação experimental profunda, priorizando os indicados por H1 e incluindo ao menos um caso previsto como negativo (H2) para teste de falseabilidade.
+**Etapa 2 — Mapeamento teórico e seleção de pares (semestres 2–3).** Para cada componente formalizado, análise de compatibilidade com algoritmos quânticos: existência de formulação QUBO/oráculo, custo de codificação de dados, profundidade de circuito estimada, sensibilidade a ruído. Seleção de 3–5 pares (componente, algoritmo) para investigação experimental profunda, **guiada exclusivamente pelos achados da revisão sistemática** (não por premissa prévia), cobrindo camadas distintas da taxonomia e incluindo ao menos um caso com expectativa negativa na literatura, para teste de falseabilidade.
 
 **Etapa 3 — Bancada experimental e caracterização de regimes (semestres 3–6).** Implementação dos baselines clássicos estado-da-arte e das versões quânticas/híbridas. Execução em simulador (com e sem modelo de ruído) e em hardware real quando o tamanho da instância permitir. Métricas: time-to-solution, qualidade da solução (razão de aproximação), custo monetário/energético, escalabilidade. Análise estatística das curvas de cruzamento. Todos os artefatos (código, instâncias, resultados) publicados em repositório aberto para reprodutibilidade.
 

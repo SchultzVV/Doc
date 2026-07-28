@@ -1,57 +1,71 @@
-# qmas-bench — Quantum Multi-Agent System Benchmark
+# research-platform — Quântica em Arquiteturas Multiagente
 
-Bancada experimental do pré-projeto de doutorado: *"Quais componentes de uma
-arquitetura multiagente podem se beneficiar de algoritmos quânticos e em quais
-condições isso traz vantagens mensuráveis?"*
+Plataforma experimental do doutorado: *"Quais componentes de arquiteturas
+multiagentes baseadas em LLMs podem se beneficiar de computação quântica e
+sob quais condições isso produz ganhos mensuráveis?"*
 
-A carga de trabalho realista vem de **engenharia financeira**: agentes de
-extração de documentos (PyMuPDF/regex/OCR), previsão de séries temporais e
-precificação de derivativos, coordenados por um orquestrador cujos problemas
-internos (alocação de tarefas, escalonamento) são formulados como QUBO e
-despachados para solvers clássicos ou quânticos.
+**A plataforma é agnóstica quanto a ONDE a vantagem quântica está (se estiver
+em algum lugar).** A revisão bibliográfica determinará quais componentes viram
+objeto de experimento; o código não assume a resposta. Todo experimento segue
+o mesmo desenho:
 
-## Levantamento da stack
+```
+Multi-Agent System
+    ↓
+Component Under Study          (qmas.core.component.ComponentUnderStudy)
+    ↓
+Classical Implementation       (<camada>/classical/)
+    ↓
+Quantum Implementation         (<camada>/quantum/)
+    ↓
+Experimental Comparison        (qmas.experiments.ExperimentHarness)
+```
 
-| Camada | Ferramenta | Papel |
+## Camadas candidatas (nenhuma é a hipótese principal)
+
+| Camada | Pergunta | Status |
 |---|---|---|
-| Contratos | `pydantic` | Schemas de Task, AgentSpec, Message — o "protocolo" entre agentes |
-| Agentes de domínio | `pymupdf`, `pytesseract`, `re` | Extração de dados de PDFs financeiros |
-| | `statsmodels`, `pandas` | Forecasting (ARIMA/ETS) |
-| | `numpy`, `scipy` | Pricing (Black-Scholes, Monte Carlo) |
-| Agente LLM | `anthropic` (Claude API) | Planejamento/decomposição de tarefas em linguagem natural |
-| Orquestração | máquina de estados própria | O "cérebro" do pipeline: etapas, roteamento, erro |
-| Formulação | `qmas.problems` | Alocação de tarefas (GAP) → QUBO/Ising |
-| Solvers clássicos | `ortools` (CP-SAT), heurísticas próprias | Baselines fortes (exato + greedy + simulated annealing) |
-| Solvers quânticos | `qiskit`, `qiskit-aer` (QAOA), `dwave-ocean-sdk` (annealing) | Candidatos à vantagem |
-| Benchmark | `qmas.bench` + `mlflow` | Geradores de instância, métricas, tracking reprodutível |
+| 1. `planning/` | Planejador quântico gera planos melhores/mais rápido? (tree search, MCTS, HTN) | stub |
+| 2. `retrieval/` | Quântica acelera busca dos agentes? (RAG, vetorial, semântica) — expectativa negativa NISQ (qRAM) a testar | stub |
+| 3. `memory/` | Memória quântica melhora recuperação contextual? (episódica, longo prazo) | stub |
+| 4. `coordination/` | Quântica ajuda coordenação? (consenso, alocação, negociação, roteamento) | **exp001 implementado** |
+| 5. `learning/` | QML melhora modelos dos agentes? (classificação, forecast, portfólio) | stub |
+| 6. `reasoning/` | Circuitos quânticos como etapas de raciocínio? (mais exploratória) | stub |
 
 ## Estrutura
 
 ```
 src/qmas/
-├── contracts.py        # Task, AgentSpec, Message (pydantic)
-├── agents/             # base + doc_extractor, forecaster, pricer, llm_planner
-├── orchestrator/       # state_machine (fluxo) + dispatcher (clássico vs quântico)
-├── problems/           # qubo.py (QUBO/Ising) + allocation.py (GAP → QUBO)
-├── solvers/            # base (protocolo) + classical + quantum
-└── bench/              # generators, metrics (TTS, approx ratio), runner (MLflow)
+├── core/            # contracts, ComponentUnderStudy, Orchestrator, HybridSelector
+├── agents/          # agentes de domínio: doc_extractor, forecaster, pricer, llm_planner
+├── planning/        ├── classical/  └── quantum/
+├── retrieval/       ├── classical/  └── quantum/
+├── memory/          ├── classical/  └── quantum/
+├── coordination/    ├── problems/ (GAP→QUBO)  ├── classical/  └── quantum/
+├── learning/        ├── classical/  └── quantum/
+├── reasoning/       ├── classical/  └── quantum/
+└── experiments/     # harness genérico, métricas, exp001
+experiments/         # protocolos e registros de cada experimento
+papers/              # artigos em produção
 ```
 
-## Instalação
+## Experimento 001 — alocação de tarefas (caso particular)
+
+O benchmark GAP → QUBO → {CP-SAT, greedy, SA} × {QAOA, D-Wave} foi o primeiro
+componente formalizado e serve de exercício completo do protocolo. **Ele não
+define o escopo científico da pesquisa** — ver `experiments/exp001-task-allocation/`.
 
 ```bash
-pip install -e ".[dev]"          # núcleo
-pip install -e ".[quantum]"      # + qiskit, dwave
+pip install -e ".[dev]"                       # núcleo
+pip install -e ".[quantum]"                   # + qiskit, dwave
+python -m qmas.experiments.exp001_task_allocation --no-quantum   # só baselines
 ```
 
-## Uso (alvo)
+## Hipóteses (abertas — a revisão sistemática as refina)
 
-```bash
-python -m qmas.bench.runner --config configs/experiment.yaml
-```
-
-## Mapeamento para o pré-projeto
-
-- **H1** → `problems/allocation.py` + `solvers/` (crossover clássico↔quântico)
-- **H3** → `bench/generators.py` (varredura de tamanho de instância)
-- **Etapa 3** → `bench/runner.py` (métricas: time-to-solution, razão de aproximação)
+- **H1** Existem componentes com vantagem mensurável em implementação quântica.
+- **H2** As vantagens dependem do tamanho do problema e da estrutura dos dados.
+- **H3** Nem todos os componentes se beneficiam igualmente.
+- **H4** É possível um orquestrador híbrido que seleciona dinamicamente
+  clássico/quântico (`qmas.core.orchestrator.HybridSelector`).
+- **H5** Arquiteturas híbridas têm melhor custo-benefício que puras.

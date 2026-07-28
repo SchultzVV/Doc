@@ -1,7 +1,7 @@
 [project]
-name = "qmas-bench"
-version = "0.1.0"
-description = "Bancada experimental: algoritmos quânticos em arquiteturas multiagente (workloads de engenharia financeira)"
+name = "qmas-research-platform"
+version = "0.2.0"
+description = "Plataforma experimental: onde (e se) computação quântica beneficia arquiteturas multiagente baseadas em LLMs"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.7",

@@ -32,3 +32,19 @@ def test_simulated_annealing_runs():
     a = SimulatedAnnealingSolver(n_sweeps=50, seed=0).solve(p)
     # SA pode não achar solução factível em 50 sweeps; só não pode explodir
     assert a.objective_value is not None
+
+
+def test_harness_runs_component_without_mlflow():
+    """O harness genérico compara implementações do componente de coordenação."""
+    from qmas.coordination import task_allocation_component
+    from qmas.experiments.harness import ExperimentHarness
+
+    component = task_allocation_component(with_quantum=False)
+    component.reference = None  # sem CP-SAT no smoke test (rápido)
+    records = ExperimentHarness(component).sweep(
+        param_grid={"n_tasks": [3], "n_agents": [2], "constraint_density": [0.8]},
+        replications=1,
+        log_mlflow=False,
+    )
+    assert {r.implementation for r in records} == {"greedy", "sim_annealing"}
+    assert all(r.paradigm.value == "classical" for r in records)
