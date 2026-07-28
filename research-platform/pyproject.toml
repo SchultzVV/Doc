@@ -1,0 +1,40 @@
+[project]
+name = "qmas-bench"
+version = "0.1.0"
+description = "Bancada experimental: algoritmos quânticos em arquiteturas multiagente (workloads de engenharia financeira)"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scipy>=1.13",
+    "statsmodels>=0.14",
+    "pymupdf>=1.24",
+    "pytesseract>=0.3",
+    "anthropic>=0.50",
+    "ortools>=9.10",
+    "mlflow>=2.14",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+quantum = [
+    "qiskit>=1.1",
+    "qiskit-aer>=0.14",
+    "qiskit-algorithms>=0.3",
+    "dwave-ocean-sdk>=7.0",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100

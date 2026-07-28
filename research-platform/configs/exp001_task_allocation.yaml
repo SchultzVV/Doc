@@ -1,0 +1,34 @@
+# Configuração de um experimento de caracterização de regimes (Etapa 3 / H3).
+experiment:
+  name: "gap-crossover-v0"
+  seed: 42
+  tracking_uri: "mlruns"   # MLflow local
+
+# Varredura de tamanho de instância: nº agentes x nº tarefas (H3)
+instances:
+  problem: "task_allocation"        # generalized assignment
+  n_agents: [4, 8, 16, 32]
+  n_tasks: [8, 16, 32, 64, 128]
+  constraint_density: [0.3, 0.6, 0.9]
+  replications: 10
+
+solvers:
+  - name: "cpsat"                   # exato (baseline forte)
+    kind: classical
+    time_limit_s: 60
+  - name: "greedy"
+    kind: classical
+  - name: "sim_annealing"
+    kind: classical
+    n_sweeps: 1000
+  - name: "qaoa"
+    kind: quantum
+    backend: "aer_simulator"        # trocar por ibm_* p/ hardware real
+    reps: 3                         # profundidade p do QAOA
+    shots: 4096
+    noise_model: null               # ou "ibm_brisbane" p/ ruído calibrado
+
+metrics:
+  - time_to_solution
+  - approximation_ratio
+  - cost_usd_estimate
